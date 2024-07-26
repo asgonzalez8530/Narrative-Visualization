@@ -1,93 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+    <script src='https://d3js.org/d3.v5.min.js'></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exploring Fuel Efficiency and Engine Characteristics</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        .container {
-            display: flex;
-            min-height: 1200px; /* Adjusted for header height */
-        }
-        .sidebar {
-            width: 15%;
-            background-color: #f4f4f4;
-            padding: 10px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .content {
-            width: 85%;
-            padding: 10px;
-        }
-        .svg-container {
-            margin-top: 20px;
-        }
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            color: white;
-            background-color: #4CAF50;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-        }
-        .button:active {
-            background-color: #45a049;
-        }
-        .sidebar-button-container {
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body onload='init()'>
     <header>
         <h1>Exploring Fuel Efficiency and Engine Characteristics</h1>
     </header>
     <div class="container">
         <div class="sidebar">
             <div>
-                <h2>Sidebar</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ac neque a nunc condimentum cursus.</p>
+                <h2 id="sidebar-title"></h2>
+                <p id="sidebar-focus"></p>
+                <p id="sidebar-conclusion"></p>
             </div>
             <div class="sidebar-button-container">
-                <button class="button">Back</button>
-                <button class="button">Next</button>
+                <button id='back-button' class="button" onclick="previousSlide()"></button>
+                <button id='next-button' class="button" onclick="nextSlide()"></button>
             </div>
         </div>
         <div class="content">
             <div>
-                <h2>Content</h2>
-                <p>This section can contain your main content.</p>
+                <!-- <h2 id="content-title">Graph</h2>
+                <p id="content-paragraph"></p> -->
                 <div class="svg-container">
-                    <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+                    <svg id="fuel-graph">
                     </svg>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
