@@ -56,3 +56,6 @@ header {
 circle {
     stroke: white;
 }
+.sidebar-narrative {
+    white-space: pre-line;
+}

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
     <script src='https://d3js.org/d3.v5.min.js'></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exploring Fuel Efficiency and Engine Characteristics</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body onload='init()'>
+<body onload='loadSlide()'>
     <header>
         <h1>Exploring Fuel Efficiency and Engine Characteristics</h1>
     </header>
@@ -15,8 +16,7 @@
         <div class="sidebar">
             <div>
                 <h2 id="sidebar-title"></h2>
-                <p id="sidebar-focus"></p>
-                <p id="sidebar-conclusion"></p>
+                <p id="sidebar-narrative" class="sidebar-narrative"></p>
             </div>
             <div class="sidebar-button-container">
                 <button id='back-button' class="button" onclick="previousSlide()"></button>

@@ -1,59 +1,87 @@
-var currentSlide = 0;
+// window size
+var width = 1200;
+var height = 800;
+var margin = 100;
 
-async function init() 
+var graph = d3.select('#fuel-graph');
+
+// graph scale
+var x = d3.scaleLog([10, 150], [0, width]).base(2);
+var y = d3.scaleLog([10, 150], [height,0]).base(10);
+
+// setup y axis
+var yAxis = d3.axisLeft(y)
+.tickValues([10, 20, 50, 100])
+.tickFormat(d3.format("~s"));
+
+graph.append("g")
+.attr("transform","translate("+margin+","+margin+")")
+.call(yAxis);
+
+graph.append("text")
+.attr("class", "y label")
+.attr("text-anchor", "end")
+.attr("y", margin/2)
+.attr("x", -1 * (height/2))
+.attr("transform", "rotate(-90)")
+.text("Average Highway MPG");
+
+// setup x axis
+var xAxis = d3.axisBottom(x)
+.tickValues([10, 20, 50, 100])
+.tickFormat(d3.format("~s"));
+
+graph.append("g")
+.attr("transform","translate("+margin+","+(height+margin)+")")
+.call(xAxis);
+
+graph.append("text")
+.attr("class", "x label")
+.attr("text-anchor", "end")
+.attr("x", width/2 + margin*2)
+.attr("y", height + margin + margin/2)
+.text("Average City MPG");
+
+
+var currentSlide = 1; // TODO: revert back to slide zero
+
+async function loadSlide()
 {
-    currentSlide = 0;
-    await drawTitlePageGraph();
-    loadTitlePageContent();
+    hideSlideButtons();
+    clearSideBarContent();
+    drawGraph();
+    switch (currentSlide)
+    {
+        default:
+        case 0:
+            currentSlide = 0;
+            // await drawTitlePageGraph();
+            loadTitlePage();
+            return;
+        case 1:
+            // await drawSceneOneGraph();
+            await loadSceneOne();
+            break;
+        case 2: 
+            // await drawSceneTwoGraph();
+            await loadSceneTwo();
+            break;
+        case 3: 
+            // await drawSceneThreeGraph();
+            await loadSceneThree();
+            break;
+        case 4:
+            // await drawConclusionGraph();
+            await loadConclusion();
+            return;
+    }
+    showSlideButtons();
 }
 
-async function drawTitlePageGraph()
+async function drawGraph()
 {
     var data = await d3.csv("https://flunky.github.io/cars2017.csv");
 
-    var width = 1200;
-    var height = 800;
-    var margin = 100;
-
-    var x = d3.scaleLog([10, 150], [0, width]).base(2);
-    var y = d3.scaleLog([10, 150], [height,0]).base(10);
-
-    var graph = d3.select('#fuel-graph');
-
-    // setup y axis
-    var yAxis = d3.axisLeft(y)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .call(yAxis);
-
-    graph.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("y", margin/2)
-    .attr("x", -1 * (height/2))
-    .attr("transform", "rotate(-90)")
-    .text("Average Highway MPG");
-    
-    // setup x axis
-    var xAxis = d3.axisBottom(x)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+(height+margin)+")")
-    .call(xAxis);
-
-    graph.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin*2)
-    .attr("y", height + margin + margin/2)
-    .text("Average City MPG");
-    
-    // draw graph
     graph.attr("width",width + 2*margin)
     .attr("height",height + 2*margin)
     .append("g")
@@ -68,11 +96,28 @@ async function drawTitlePageGraph()
     .attr('fill', (d) => fuelTypeColor(d));
 }
 
-function loadTitlePageContent()
+async function drawTitlePageGraph()
+{
+    var data = await d3.csv("https://flunky.github.io/cars2017.csv");
+
+    graph.attr("width",width + 2*margin)
+    .attr("height",height + 2*margin)
+    .append("g")
+    .attr("transform","translate("+margin+","+margin+")")
+    .selectAll()
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx', (d) => x(d.AverageCityMPG))
+    .attr('cy', (d) => y(d.AverageHighwayMPG))
+    .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
+    .attr('fill', (d) => fuelTypeColor(d));
+}
+
+function loadTitlePage()
 {
     document.getElementById('sidebar-title').textContent = 'Introduction'; 
-    document.getElementById('sidebar-focus').textContent = 'Let\'s explore how different fuel types and engine sizes affect city and highway miles per gallon (MPG).';
-    document.getElementById('sidebar-conclusion').textContent = "";
+    document.getElementById('sidebar-narrative').textContent = 'Let\'s explore how different fuel types and engine sizes affect city and highway miles per gallon (MPG).';
     
     var backButton = document.getElementById('back-button');
     backButton.style.visibility = 'hidden';
@@ -107,46 +152,15 @@ async function previousSlide()
     await loadSlide();
 }
 
-async function loadSlide()
-{
-    hideSlideButtons();
-    clearSideBarContent();
-    switch (currentSlide)
-    {
-        default:
-        case 0:
-            await init();
-            return;
-        case 1:
-            await drawSceneOneGraph();
-            await loadSceneOneContent();
-            break;
-        case 2: 
-            await drawSceneTwoGraph();
-            await loadSceneTwoContent();
-            break;
-        case 3: 
-            await drawSceneThreeGraph();
-            await loadSceneThreeContent();
-            break;
-        case 4:
-            await drawConclusionGraph();
-            await loadConclusionContent();
-            return;
-    }
-    showSlideButtons();
-}
-
 function clearSideBarContent()
 {
     var title = document.getElementById('sidebar-title');
-    title.textContent = ''; 
-
-    var focus = document.getElementById('sidebar-focus');
-    focus.textContent = '';
+    var narrative = document.getElementById('sidebar-narrative');
     
-    var conclusion = document.getElementById('sidebar-conclusion');
-    conclusion.textContent = '';
+    title.textContent = ''; 
+    narrative.textContent = '';
+
+    d3.select(".annotations").remove();
 }
 
 function hideSlideButtons()
@@ -168,53 +182,19 @@ function showSlideButtons()
     nextButton.textContent = 'Next \u2192';
 }
 
+async function type(element, text)
+{
+    for (let charIndex = 0; charIndex < text.length; charIndex++) 
+    {
+        element.textContent += text.charAt(charIndex);
+        await new Promise(r => setTimeout(r, 10)); // wait 2 ms
+    }
+}
+
 async function drawSceneOneGraph()
 {
     var data = await d3.csv("https://flunky.github.io/cars2017.csv");
 
-    var width = 1200;
-    var height = 800;
-    var margin = 100;
-
-    var x = d3.scaleLog([10, 150], [0, width]).base(2);
-    var y = d3.scaleLog([10, 150], [height,0]).base(10);
-
-    var graph = d3.select('#fuel-graph');
-
-    // setup y axis
-    var yAxis = d3.axisLeft(y)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .call(yAxis);
-
-    graph.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("y", margin/2)
-    .attr("x", -1 * (height/2))
-    .attr("transform", "rotate(-90)")
-    .text("Average Highway MPG");
-    
-    // setup x axis
-    var xAxis = d3.axisBottom(x)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+(height+margin)+")")
-    .call(xAxis);
-
-    graph.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin*2)
-    .attr("y", height + margin + margin/2)
-    .text("Average City MPG");
-    
-    // draw graph
     graph.attr("width",width + 2*margin)
     .attr("height",height + 2*margin)
     .append("g")
@@ -226,83 +206,61 @@ async function drawSceneOneGraph()
     .attr('cx', (d) => x(d.AverageCityMPG))
     .attr('cy', (d) => y(d.AverageHighwayMPG))
     .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
-    .attr('fill', 'black');
+    .attr('fill', (d) => fuelTypeColor(d));
 }
 
-async function loadSceneOneContent()
+async function loadSceneOne()
 {
     var title = document.getElementById('sidebar-title');
+    var narrative = document.getElementById('sidebar-narrative');
+    
     title.textContent = 'Fuel Type and MPG Relationship'; 
-
-    var focus = document.getElementById('sidebar-focus');
-    focus.textContent = 'How does fuel type impact average highway and city MPG?';
+    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
     await new Promise(r => setTimeout(r, 2000)); // wait 2 seconds
+
+    await electricCarsAnnotations();
     
-    var conclusion = document.getElementById('sidebar-conclusion');
     var text = "Fuel type is a significant factor in determining fuel efficiency, with electric vehicles generally "
         + "performing better in the city due to regenerative braking, while diesel vehicles tend to perform better than gasoline "
         + "vehicles on the highway.";
     
-    await type(conclusion, text);
+    await type(narrative, text);
 }
 
-async function type(element, text)
+async function electricCarsAnnotations()
 {
-    for (let charIndex = 0; charIndex < text.length; charIndex++) 
-    {
-        element.textContent += text.charAt(charIndex);
-        await new Promise(r => setTimeout(r, 20)); // wait 2 ms
-    }
+    const type = d3.annotationCalloutCircle
+    const annotations = [{
+        type: d3.annotationCalloutCircle,
+        note: {
+            title: "Electric Vehicles",
+            label: "High preforms in City and Highway MPG",
+            wrap: 190
+        },
+        subject: {
+            radius: 170
+        },
+        x: 1175,
+        y: 220,
+        dy: 170,
+        dx: -170
+    }].map(function(d){ d.color = "#5f5fa7"; return d});
+
+    const makeAnnotations = d3.annotation()
+        .notePadding(10)
+        .type(type)
+        .annotations(annotations);
+
+    graph.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations);
 }
 
 async function drawSceneTwoGraph()
 {
     var data = await d3.csv("https://flunky.github.io/cars2017.csv");
 
-    var width = 1200;
-    var height = 800;
-    var margin = 100;
-
-    var x = d3.scaleLog([10, 150], [0, width]).base(2);
-    var y = d3.scaleLog([10, 150], [height,0]).base(10);
-
-    var graph = d3.select('#fuel-graph');
-
-    // setup y axis
-    var yAxis = d3.axisLeft(y)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .call(yAxis);
-
-    graph.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("y", margin/2)
-    .attr("x", -1 * (height/2))
-    .attr("transform", "rotate(-90)")
-    .text("Average Highway MPG");
-    
-    // setup x axis
-    var xAxis = d3.axisBottom(x)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+(height+margin)+")")
-    .call(xAxis);
-
-    graph.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin*2)
-    .attr("y", height + margin + margin/2)
-    .text("Average City MPG");
-    
-    // draw graph
     graph.attr("width",width + 2*margin)
     .attr("height",height + 2*margin)
     .append("g")
@@ -317,69 +275,25 @@ async function drawSceneTwoGraph()
     .attr('fill', 'black');
 }
 
-async function loadSceneTwoContent()
+async function loadSceneTwo()
 {
     var title = document.getElementById('sidebar-title');
-    title.textContent = 'Engine Size Impact'; 
+    var narrative = document.getElementById('sidebar-narrative');
 
-    var focus = document.getElementById('sidebar-focus');
-    focus.textContent = 'How does fuel type impact average highway and city MPG?';
+    title.textContent = 'Engine Size Impact'; 
+    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
     await new Promise(r => setTimeout(r, 2000)); // wait 2 seconds
     
-    var conclusion = document.getElementById('sidebar-conclusion');
     var text = "Fuel type ...";
     
-    await type(conclusion, text);
+    await type(narrative, text);
 }
 
 async function drawSceneThreeGraph()
 {
     var data = await d3.csv("https://flunky.github.io/cars2017.csv");
 
-    var width = 1200;
-    var height = 800;
-    var margin = 100;
-
-    var x = d3.scaleLog([10, 150], [0, width]).base(2);
-    var y = d3.scaleLog([10, 150], [height,0]).base(10);
-
-    var graph = d3.select('#fuel-graph');
-
-    // setup y axis
-    var yAxis = d3.axisLeft(y)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .call(yAxis);
-
-    graph.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("y", margin/2)
-    .attr("x", -1 * (height/2))
-    .attr("transform", "rotate(-90)")
-    .text("Average Highway MPG");
-    
-    // setup x axis
-    var xAxis = d3.axisBottom(x)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+(height+margin)+")")
-    .call(xAxis);
-
-    graph.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin*2)
-    .attr("y", height + margin + margin/2)
-    .text("Average City MPG");
-    
-    // draw graph
     graph.attr("width",width + 2*margin)
     .attr("height",height + 2*margin)
     .append("g")
@@ -394,69 +308,25 @@ async function drawSceneThreeGraph()
     .attr('fill', 'black');
 }
 
-async function loadSceneThreeContent()
+async function loadSceneThree()
 {
     var title = document.getElementById('sidebar-title');
-    title.textContent = 'Combining the Effect of Fuel Type and Engine Size'; 
+    var narrative = document.getElementById('sidebar-narrative');
 
-    var focus = document.getElementById('sidebar-focus');
-    focus.textContent = 'How does fuel type impact average highway and city MPG?';
+    title.textContent = 'Combining the Effect of Fuel Type and Engine Size'; 
+    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
     await new Promise(r => setTimeout(r, 2000)); // wait 2 seconds
     
-    var conclusion = document.getElementById('sidebar-conclusion');
     var text = "Fuel type ...";
     
-    await type(conclusion, text);
+    await type(narrative, text);
 }
 
 async function drawConclusionGraph()
 {
     var data = await d3.csv("https://flunky.github.io/cars2017.csv");
 
-    var width = 1200;
-    var height = 800;
-    var margin = 100;
-
-    var x = d3.scaleLog([10, 150], [0, width]).base(2);
-    var y = d3.scaleLog([10, 150], [height,0]).base(10);
-
-    var graph = d3.select('#fuel-graph');
-
-    // setup y axis
-    var yAxis = d3.axisLeft(y)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .call(yAxis);
-
-    graph.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("y", margin/2)
-    .attr("x", -1 * (height/2))
-    .attr("transform", "rotate(-90)")
-    .text("Average Highway MPG");
-    
-    // setup x axis
-    var xAxis = d3.axisBottom(x)
-    .tickValues([10, 20, 50, 100])
-    .tickFormat(d3.format("~s"));
-
-    graph.append("g")
-    .attr("transform","translate("+margin+","+(height+margin)+")")
-    .call(xAxis);
-
-    graph.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin*2)
-    .attr("y", height + margin + margin/2)
-    .text("Average City MPG");
-    
-    // draw graph
     graph.attr("width",width + 2*margin)
     .attr("height",height + 2*margin)
     .append("g")
@@ -471,20 +341,19 @@ async function drawConclusionGraph()
     .attr('fill', 'black');
 }
 
-async function loadConclusionContent()
+async function loadConclusion()
 {
     var title = document.getElementById('sidebar-title');
-    title.textContent = 'Conclusion'; 
+    var narrative = document.getElementById('sidebar-narrative');
 
-    var focus = document.getElementById('sidebar-focus');
-    focus.textContent = 'How does fuel type impact average highway and city MPG?';
+    title.textContent = 'Conclusion'; 
+    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
     await new Promise(r => setTimeout(r, 2000)); // wait 2 seconds
     
-    var conclusion = document.getElementById('sidebar-conclusion');
     var text = "Fuel type ...";
     
-    await type(conclusion, text);
+    await type(narrative, text);
 
     var backButton = document.getElementById('back-button');
     backButton.style.visibility = 'visible';
