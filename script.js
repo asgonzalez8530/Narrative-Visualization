@@ -1,48 +1,94 @@
 // window size
-var width = 1200;
-var height = 800;
-var margin = 100;
+var width = 1200
+var height = 800
+var margin = 100
 
-var graph = d3.select('#fuel-graph');
+var graph = d3.select('#fuel-graph')
 
 // graph scale
-var x = d3.scaleLog([10, 150], [0, width]).base(2);
-var y = d3.scaleLog([10, 150], [height,0]).base(10);
+var x = d3.scaleLog([10, 150], [0, width]).base(2)
+var y = d3.scaleLog([10, 150], [height,0]).base(10)
 
 // setup y axis
 var yAxis = d3.axisLeft(y)
-.tickValues([10, 20, 50, 100])
-.tickFormat(d3.format("~s"));
+    .tickValues([10, 20, 50, 100])
+    .tickFormat(d3.format("~s"))
 
 graph.append("g")
-.attr("transform","translate("+margin+","+margin+")")
-.call(yAxis);
+    .attr("transform","translate("+margin+","+margin+")")
+    .call(yAxis)
 
 graph.append("text")
-.attr("class", "y label")
-.attr("text-anchor", "end")
-.attr("y", margin/2)
-.attr("x", -1 * (height/2))
-.attr("transform", "rotate(-90)")
-.text("Average Highway MPG");
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", margin/2)
+    .attr("x", -1 * (height/2))
+    .attr("transform", "rotate(-90)")
+    .text("Average Highway MPG")
 
 // setup x axis
 var xAxis = d3.axisBottom(x)
-.tickValues([10, 20, 50, 100])
-.tickFormat(d3.format("~s"));
+    .tickValues([10, 20, 50, 100])
+    .tickFormat(d3.format("~s"))
 
 graph.append("g")
-.attr("transform","translate("+margin+","+(height+margin)+")")
-.call(xAxis);
+    .attr("transform","translate("+margin+","+(height+margin)+")")
+    .call(xAxis)
 
 graph.append("text")
-.attr("class", "x label")
-.attr("text-anchor", "end")
-.attr("x", width/2 + margin*2)
-.attr("y", height + margin + margin/2)
-.text("Average City MPG");
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", width/2 + margin*2)
+    .attr("y", height + margin + margin/2)
+    .text("Average City MPG")
 
-var currentSlide = 4; // TODO: revert back to slide zero
+// legend
+var keys = ["Electric", "Gasoline", "Diesel"]
+var xLegend = 1300
+var yLegend = 750
+
+// colors
+graph.selectAll()
+    .data(keys)
+    .enter()
+    .append("circle")
+        .attr("cx", xLegend)
+        .attr("cy", (d, i) => yLegend + i * 25) 
+        .attr("r", 7)
+        .style("fill", (d) => fuelTypeColor(d))
+
+// labels
+graph.selectAll()
+    .data(keys)
+    .enter()
+    .append("text")
+        .attr('id', 'legendOption')
+        .attr("x", xLegend + 20)
+        .attr("y", (d, i) => yLegend + i * 25) 
+        .style("fill", (d) => fuelTypeColor(d))
+        .text((d) => d)
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+
+graph.append("text")
+    .attr("x", xLegend)
+    .attr("y", yLegend - 30)
+    .text("Legend")
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+    .style("fill", '#5f5fa7')
+
+var rectangle = graph.append("rect")
+    .attr("x", xLegend - 15)
+    .attr("y", yLegend - 45)
+    .attr("width", 105)
+    .attr("height", 110)
+    .style("fill", "none")
+    .style("stroke", "#5f5fa7")
+    .style("stroke-width", "2px")
+    .attr("rx", 3)
+
+var currentSlide = 4
 
 // common elements
 var title = document.getElementById('sidebar-title')
@@ -72,7 +118,6 @@ async function loadSlide()
             await loadSceneThree()
             return
         case 4:
-            // await drawConclusionGraph()
             await loadConclusion()
             return
     }
@@ -127,6 +172,7 @@ async function drawGraph()
     .attr('cy', (d) => y(d.AverageHighwayMPG))
     .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
     .attr('fill', (d) => fuelTypeColor(d.Fuel))
+    .attr('id', 'd-circle')
     .style('opacity', 0)
 }
 
@@ -137,6 +183,7 @@ function fuelTypeColor(fuelType)
         case "Gasoline":
             return '#305cde'; // blue
         case "Electricity":
+        case "Electric":
             return '#45a049'; // green
         case "Diesel":
             return '#c91b00'; // red
@@ -145,7 +192,7 @@ function fuelTypeColor(fuelType)
 
 function resetGraph()
 {
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .transition()
     .duration(2000)
     .ease(d3.easeLinear)
@@ -228,7 +275,7 @@ async function clickedSceneOneButton()
 {    
     narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .filter((d) => d.Fuel == 'Gasoline')
     .transition()
     .duration(2000)
@@ -370,7 +417,7 @@ async function clickedSceneTwoButton()
 {
     narrative.textContent = 'How does engine size impact city and highway mileage?\r\n\r\n'
 
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .filter((d) => d.EngineCylinders > 4 && d.EngineCylinders < 12)
     .transition()
     .duration(2000)
@@ -548,7 +595,7 @@ async function clickedSceneThreeButton()
 {
     narrative.textContent = 'How does the combination of fuel type and engine size improve overall fuel efficiency?\r\n\r\n';
 
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .filter((d) => d.Fuel != 'Electricity')
     .transition()
     .duration(2000)
@@ -595,7 +642,7 @@ async function clickedSceneThreeButton()
 
 function fadeOutAllButEngine(size)
 {
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .filter((d) => d.EngineCylinders != size)
     .transition()
     .duration(2000)
@@ -605,7 +652,7 @@ function fadeOutAllButEngine(size)
 
 function fadeInAllHighlights()
 {
-    d3.selectAll('circle')
+    d3.selectAll('#d-circle')
     .filter((d) => d.EngineCylinders == 4 
         || d.EngineCylinders == 6
         || d.Fuel == 'Electricity')
@@ -763,14 +810,84 @@ async function clickedUserExplore()
 {
     conclusionText.textContent = 'Consider these factors when choosing a vehicle to balance performance and fuel economy.\r\n\r\n';
 
-    var text = "Hover over the data points to see more details."
+    var text = "Hover over the data points to see more details or select a fuel type from the legend on the bottom right."
     await typewriterEffect(conclusionText, text)
+
+    var legendFilter = d3.selectAll('#legendOption').on('click', (d) => test(d))
+
+    var tooltip = d3.select('#graph-div')
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "1px")
+    .style("padding", "10px")
+    .style('position', "absolute")
+    
+    var mouseover = function(d) {
+        tooltip
+        .style("opacity", 1)
+    }
+    
+    var mousemove = function(d) {
+        var mouse = d3.mouse(this);
+        tooltip
+        .html("City MPG: " + d.AverageCityMPG + "<br>Highway MPG: " + d.AverageHighwayMPG + "<br>Cylinders: " + d.EngineCylinders)
+        .style("top", mouse[1]+120 + "px")
+        .style("left", mouse[0]+500 + "px")
+    }
+    
+    var mouseleave = function(d) {
+        tooltip
+        .transition()
+        .duration(200)
+        .style("opacity", 0)
+    }
+    
+    graph.selectAll('#d-circle')
+    .on("mouseover", mouseover )
+    .on("mousemove", mousemove )
+    .on("mouseleave", mouseleave )
 
     backButton.style.visibility = 'visible';
     backButton.textContent = '\u2190 Back';
-
+    
     nextButton.style.visibility = 'visible';
-    nextButton.textContent = 'Restart';
+    nextButton.textContent = 'Restart Presentation';
+}
+
+function test(fuel)
+{
+    resetGraph()
+    switch (fuel)
+    {
+        case 'Electric':
+            d3.selectAll('#d-circle')
+            .filter((d) => d.Fuel != 'Electricity')
+            .transition()
+            .duration(2000)
+            .ease(d3.easeLinear)
+            .style("opacity", .05);
+            return
+        case 'Gasoline':
+            d3.selectAll('#d-circle')
+            .filter((d) => d.Fuel != 'Gasoline')
+            .transition()
+            .duration(2000)
+            .ease(d3.easeLinear)
+            .style("opacity", .05);
+            return
+        case 'Diesel':
+            d3.selectAll('#d-circle')
+            .filter((d) => d.Fuel != 'Diesel')
+            .transition()
+            .duration(2000)
+            .ease(d3.easeLinear)
+            .style("opacity", .05);
+            return
+    }
 }
 
 async function sleep(seconds)
