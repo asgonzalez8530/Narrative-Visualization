@@ -42,7 +42,7 @@ graph.append("text")
 .attr("y", height + margin + margin/2)
 .text("Average City MPG");
 
-var currentSlide = 3; // TODO: revert back to slide zero
+var currentSlide = 4; // TODO: revert back to slide zero
 
 // common elements
 var title = document.getElementById('sidebar-title')
@@ -54,31 +54,58 @@ var nextButton = document.getElementById('next-button')
 
 async function loadSlide()
 {
-    resetSideBarContent();
-    drawGraph();
+    await resetPage()
     switch (currentSlide)
     {
         default:
         case 0:
-            currentSlide = 0;
-            loadTitlePage();
-            return;
+            currentSlide = 0
+            loadTitlePage()
+            return
         case 1:
-            await loadSceneOne();
-            break;
+            await loadSceneOne()
+            return
         case 2: 
-            await loadSceneTwo();
-            break;
+            await loadSceneTwo()
+            return
         case 3: 
-            // await drawSceneThreeGraph();
-            await loadSceneThree();
-            break;
+            await loadSceneThree()
+            return
         case 4:
-            // await drawConclusionGraph();
-            await loadConclusion();
-            return;
+            // await drawConclusionGraph()
+            await loadConclusion()
+            return
     }
-    // showSlideButtons();
+}
+
+async function nextSlide()
+{
+    currentSlide++;
+    await loadSlide();
+}
+
+async function previousSlide()
+{
+    currentSlide--;
+    await loadSlide();
+}
+
+async function resetPage()
+{
+    title.textContent = ''
+    narrative.textContent = ''
+    conclusionHeader.textContent = ''
+    conclusionText.textContent = ''
+
+    backButton.style.visibility = 'hidden'
+    nextButton.style.visibility = 'hidden'
+
+    document.getElementById("list").innerHTML = '';
+
+    d3.selectAll(".annotations").remove()
+
+    await drawGraph()
+    resetGraph()
 }
 
 async function drawGraph()
@@ -99,7 +126,8 @@ async function drawGraph()
     .attr('size', (d) => d.EngineCylinders)
     .attr('cy', (d) => y(d.AverageHighwayMPG))
     .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
-    .attr('fill', (d) => fuelTypeColor(d.Fuel));
+    .attr('fill', (d) => fuelTypeColor(d.Fuel))
+    .style('opacity', 0)
 }
 
 function fuelTypeColor(fuelType)
@@ -115,40 +143,13 @@ function fuelTypeColor(fuelType)
     }
 }
 
-function loadTitlePage()
+function resetGraph()
 {
-    title.textContent = 'Introduction'; 
-    narrative.textContent = 'Let\'s explore how different fuel types and engine sizes affect city and highway miles per gallon (MPG).';
-
-    backButton.style.visibility = 'hidden';
-
-    nextButton.textContent = 'Let\'s Explore \u2192';
-    nextButton.style.visibility = 'visible';
-}
-
-async function nextSlide()
-{
-    currentSlide++;
-    await loadSlide();
-}
-
-async function previousSlide()
-{
-    currentSlide--;
-    await loadSlide();
-}
-
-function resetSideBarContent()
-{
-    title.textContent = ''
-    narrative.textContent = ''
-    conclusionHeader.textContent = ''
-    conclusionText.textContent = ''
-
-    backButton.style.visibility = 'hidden'
-    nextButton.style.visibility = 'hidden'
-
-    d3.selectAll(".annotations").remove()
+    d3.selectAll('circle')
+    .transition()
+    .duration(2000)
+    .ease(d3.easeLinear)
+    .style('opacity', 1);
 }
 
 function showSlideButtons()
@@ -171,6 +172,29 @@ async function typewriterEffect(element, text)
     element.textContent += "\r\n\r\n";
 }
 
+function loadTitlePage()
+{
+    title.textContent = 'Introduction'
+    narrative.textContent = "Let's explore how different fuel types and engine sizes affect city and highway "
+        + "miles per gallon (MPG).\r\n\r\n"
+
+    var button = document.createElement("button")
+
+    button.id = 'titlePageExplore'
+    button.className = 'button'
+    button.textContent = "Let's Explore \u2192"
+    button.style.opacity = 0
+
+    button.setAttribute('onclick', 'nextSlide()')
+    document.getElementById('sidebar-narrative').appendChild(button);
+
+    d3.select('#titlePageExplore')
+        .transition()
+        .duration(1000)
+        .ease(d3.easeLinear)
+        .style("opacity", 1)
+}
+
 async function loadSceneOne()
 {    
     title.textContent = 'The Impact of Fuel Type on Mileage'; 
@@ -185,22 +209,22 @@ async function loadSceneOne()
 
     var button = document.createElement("button");
 
-    button.id = 'unfocusGasButton';
+    button.id = 'sceneOneExploration';
     button.className = 'button';
     button.textContent = "Focus on Diesel and Electric Vehicles"
     button.style.opacity = 0;
 
-    button.setAttribute('onclick', 'clickedUnfocusGasButton()')
+    button.setAttribute('onclick', 'clickedSceneOneButton()')
     document.getElementById('sidebar-narrative').appendChild(button);
 
-    d3.select('#unfocusGasButton')
+    d3.select('#sceneOneExploration')
         .transition()
         .duration(1000)
         .ease(d3.easeLinear)
         .style("opacity", 1);
 }
 
-async function clickedUnfocusGasButton()
+async function clickedSceneOneButton()
 {    
     narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
 
@@ -209,7 +233,7 @@ async function clickedUnfocusGasButton()
     .transition()
     .duration(2000)
     .ease(d3.easeLinear)
-    .style("opacity", .05);
+    .style("opacity", .03);
     
     await sleep(3);
     
@@ -217,16 +241,14 @@ async function clickedUnfocusGasButton()
     
     var text = "Notice how the electric cars are clustered around the top right side of the graph "
     + "showing they have high city and highway mileage."
-    
     await typewriterEffect(narrative, text)
     
     await sleep(2)
     
     dieselCarsAnnotations();
     
-    text = "Diesel engines are clustered above most gasoline engines illustrating that they perform better "
+    text = "Diesel engines are clustered above most gasoline engines, illustrating that they perform better "
          + "than most gasoline engines in city and highway mileage."
-    
     await typewriterEffect(narrative, text)
     
     await sleep(2)
@@ -235,8 +257,7 @@ async function clickedUnfocusGasButton()
     
     text = "Fuel type is a significant factor in determining fuel efficiency, with electric vehicles generally "
          + "performing better due to regenerative braking and diesel vehicles performing better than "
-         + " most gasoline vehicles due to diesel fuel being more combustible than gasoline."
-    
+         + "most gasoline vehicles due to diesel fuel being more combustible than gasoline."
     await typewriterEffect(conclusionText, text);
 
     showSlideButtons();
@@ -249,7 +270,7 @@ function electricCarsAnnotations()
         type: d3.annotationCalloutCircle,
         note: {
             title: "Electric Vehicles",
-            label: "Perform highest in the city and highway",
+            label: "Perform best in the city and highway",
             wrap: 190
         },
         subject: {
@@ -330,39 +351,38 @@ async function loadSceneTwo()
 
     var button = document.createElement("button");
 
-    button.id = 'unfocusMidRangeEngines';
+    button.id = 'sceneTwoExploration';
     button.className = 'button';
     button.textContent = "Filter Engine Sizes"
     button.style.opacity = 0;
 
-    button.setAttribute('onclick', 'clickedUnfocusMidRangeEngines()')
+    button.setAttribute('onclick', 'clickedSceneTwoButton()')
     document.getElementById('sidebar-narrative').appendChild(button);
 
-    d3.select('#unfocusMidRangeEngines')
+    d3.select('#sceneTwoExploration')
         .transition()
         .duration(1000)
         .ease(d3.easeLinear)
         .style("opacity", 1);
 }
 
-async function clickedUnfocusMidRangeEngines()
+async function clickedSceneTwoButton()
 {
-    narrative.textContent = 'How does engine size impact city and highway mileage?\r\n\r\n';
+    narrative.textContent = 'How does engine size impact city and highway mileage?\r\n\r\n'
 
     d3.selectAll('circle')
     .filter((d) => d.EngineCylinders > 4 && d.EngineCylinders < 12)
     .transition()
     .duration(2000)
     .ease(d3.easeLinear)
-    .style("opacity", .05);
+    .style("opacity", .05)
     
-    await sleep(3);
+    await sleep(3)
 
-    noEngineAnnotations();
+    electricEngineAnnotations()
 
     var text = "Electric vehicles do not have engine cylinders, therefore all the energy goes to the motor instead of "
         + "firing engine cylinders."
-
     await typewriterEffect(narrative, text)
 
     await sleep(2)
@@ -371,29 +391,27 @@ async function clickedUnfocusMidRangeEngines()
 
     largeEngineAnnotations()
 
-    text = "The more cylinders an engine has the less fuel efficient it is. Hence why "
+    text = "The more cylinders an engine has, the less fuel efficient it is. Hence, why "
          + "vehicles with smaller engines have a higher city and highway MPG."
-    
     await typewriterEffect(narrative, text)
 
-    await typewriterEffect(conclusionHeader, "Conclusion")    
-    
-    text = "Larger engines typically consume more fuel, resulting in a lower MPG. So, although fun to drive, cars will lots "
-         + "of cylinders have relatively low fuel efficiency."
-    
-    await typewriterEffect(conclusionText, text);
+    await typewriterEffect(conclusionHeader, "Conclusion")
 
-    showSlideButtons();
+    text = "Larger engines typically consume more fuel, resulting in a lower MPG. So, although fun to drive, cars with many "
+         + "cylinders have relatively low fuel efficiency."
+    await typewriterEffect(conclusionText, text)
+
+    showSlideButtons()
 }
 
-function noEngineAnnotations()
+function electricEngineAnnotations()
 {
     const type = d3.annotationCalloutCircle
     const annotations = [{
         type: d3.annotationCalloutCircle,
         note: {
-            title: "Zero Engine Cylinders",
-            label: "Perform highest in the city and highway",
+            title: "Zero Cylinders (Electric Engine)",
+            label: "Perform best in the city and highway",
             wrap: 190
         },
         subject: {
@@ -412,11 +430,11 @@ function noEngineAnnotations()
 
     graph.append("g")
         .attr("class", "annotation-group")
-        .attr("id", "no-engine-annotation")
+        .attr("id", "electric-engine-annotation")
         .call(makeAnnotations)
         .style("opacity", 0);
     
-    d3.select('#no-engine-annotation')
+    d3.selectAll('#electric-engine-annotation')
         .transition()
         .duration(2000)
         .ease(d3.easeLinear)
@@ -497,29 +515,11 @@ function largeEngineAnnotations()
         .style("opacity", 1);
 }
 
-async function drawSceneThreeGraph()
-{
-    var data = await d3.csv("https://flunky.github.io/cars2017.csv");
-
-    graph.attr("width",width + 2*margin)
-    .attr("height",height + 2*margin)
-    .append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .selectAll()
-    .data(data)
-    .enter()
-    .append('circle')
-    .attr('cx', (d) => x(d.AverageCityMPG))
-    .attr('cy', (d) => y(d.AverageHighwayMPG))
-    .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
-    .attr('fill', 'black');
-}
-
 async function loadSceneThree()
 {
     title.textContent = 'The Impact of Fuel Type and Engine Size on Mileage'
 
-    var text = 'How does the combination of fuel type and engine size overall fuel efficiency?'
+    var text = 'How does the combination of fuel type and engine size improve overall fuel efficiency?'
     await typewriterEffect(narrative, text)
 
     await sleep(1);
@@ -546,7 +546,7 @@ async function loadSceneThree()
 
 async function clickedSceneThreeButton()
 {
-    narrative.textContent = 'How does the combination of fuel type and engine size overall fuel efficiency?\r\n\r\n';
+    narrative.textContent = 'How does the combination of fuel type and engine size improve overall fuel efficiency?\r\n\r\n';
 
     d3.selectAll('circle')
     .filter((d) => d.Fuel != 'Electricity')
@@ -555,88 +555,216 @@ async function clickedSceneThreeButton()
     .ease(d3.easeLinear)
     .style("opacity", .05);
 
-    electricCarsAnnotations();
-
-    await sleep(8);
-
-    d3.selectAll('circle')
-    .transition()
-    .duration(2000)
-    .ease(d3.easeLinear)
-    .style("opacity", 1);
-
-    d3.select('#electric-annotation')
-    .transition()
-    .duration(2000)
-    .ease(d3.easeLinear)
-    .style("opacity", .1);
-
-    d3.selectAll('circle')
-    .filter((d) => selectAllButEngineSize(d, 4))
-    .transition()
-    .duration(2000)
-    .ease(d3.easeLinear)
-    .style("opacity", .05);
+    electricEngineAnnotations();
     
-    await sleep(8);
+    var text = "Electric cars consistently outperform diesel and gasoline vehicles due to regenerative braking."
+    await typewriterEffect(narrative, text)
 
-    d3.selectAll('circle')
-    .transition()
-    .duration(2000)
-    .ease(d3.easeLinear)
-    .style("opacity", 1);
+    await sleep(5);
 
-    d3.selectAll('circle')
-    .filter((d) => selectAllButEngineSize(d, 6))
-    .transition()
-    .duration(2000)
-    .ease(d3.easeLinear)
-    .style("opacity", .05);
+    resetGraph()
+    fadeOutAnnotation('#electric-engine-annotation')
+    fadeOutAllButEngine(4)
+    engineSizeFourAnnotations()
 
-    
-    var text = "Say something important here :)"
-    
+    text = "Four-cylinder diesel vehicles perform better on the highway than most four-cylinder gasoline vehicles due to diesel fuel being more "
+         + "combustible than gasoline."
     await typewriterEffect(narrative, text)
     
-    await sleep(2)
+    await sleep(5);
 
+    resetGraph()
+    fadeOutAnnotation('#four-cylinders-annotation')
+    fadeOutAllButEngine(6)
+    engineSizeSixAnnotations()
+
+    text = "Contrary to popular belief, six-cylinder diesel vehicles perform worse on the highway than most six-cylinder gasoline vehicles."
+    await typewriterEffect(narrative, text)
+    
+    await sleep(5)
+
+    fadeInAllHighlights()
     await typewriterEffect(conclusionHeader, "Conclusion")    
     
-    text = "TODO"
-    
+    text = "There is a complex interplay between fuel type and engine size. Although electric cars perform the best, four-cylinder diesel engines perform better "
+         + "than most gasoline counterparts. In contrast, six-cylinder diesel engines perform worse on the highway than most equivalently sized gasoline engines."
     await typewriterEffect(conclusionText, text);
 
     showSlideButtons();
 }
 
-async function drawConclusionGraph()
+function fadeOutAllButEngine(size)
 {
-    var data = await d3.csv("https://flunky.github.io/cars2017.csv");
+    d3.selectAll('circle')
+    .filter((d) => d.EngineCylinders != size)
+    .transition()
+    .duration(2000)
+    .ease(d3.easeLinear)
+    .style("opacity", .05);
+}
 
-    graph.attr("width",width + 2*margin)
-    .attr("height",height + 2*margin)
-    .append("g")
-    .attr("transform","translate("+margin+","+margin+")")
-    .selectAll()
-    .data(data)
-    .enter()
-    .append('circle')
-    .attr('cx', (d) => x(d.AverageCityMPG))
-    .attr('cy', (d) => y(d.AverageHighwayMPG))
-    .attr('r',  (d) => parseInt(d.EngineCylinders) + 8)
-    .attr('fill', 'black');
+function fadeInAllHighlights()
+{
+    d3.selectAll('circle')
+    .filter((d) => d.EngineCylinders == 4 
+        || d.EngineCylinders == 6
+        || d.Fuel == 'Electricity')
+    .transition()
+    .duration(2000)
+    .ease(d3.easeLinear)
+    .style("opacity", 1);
+
+    fadeInAnnotation('#electric-engine-annotation')
+    fadeInAnnotation('#four-cylinders-annotation')
+}
+
+function fadeOutAnnotation(annotation)
+{
+    d3.selectAll(annotation)
+    .transition()
+    .duration(2000)
+    .ease(d3.easeLinear)
+    .style("opacity", .1);
+}
+
+function fadeInAnnotation(annotation)
+{
+    d3.selectAll(annotation)
+    .transition()
+    .duration(2000)
+    .ease(d3.easeLinear)
+    .style("opacity", 1);
+}
+
+function engineSizeFourAnnotations()
+{
+    const type = d3.annotationCalloutCircle
+    const annotations = [{
+        type: d3.annotationCalloutCircle,
+        note: {
+            title: "Four Cylinders",
+            label: "Diesel engine performs better in the city and on the highway.",
+            wrap: 190
+        },
+        subject: {
+            radius: 130
+        },
+        x: 500,
+        y: 540,
+        dy: -190,
+        dx: 190
+    }].map(function(d){ d.color = "#5f5fa7"; return d});
+
+    const makeAnnotations = d3.annotation()
+        .notePadding(10)
+        .type(type)
+        .annotations(annotations);
+
+    graph.append("g")
+        .attr("class", "annotation-group")
+        .attr('id', "four-cylinders-annotation")
+        .call(makeAnnotations)
+        .style("opacity", 0);
+    
+    d3.select('#four-cylinders-annotation')
+        .transition()
+        .duration(2000)
+        .ease(d3.easeLinear)
+        .style("opacity", 1);
+}
+
+function engineSizeSixAnnotations()
+{
+    const type = d3.annotationCalloutCircle
+    const annotations = [{
+        type: d3.annotationCalloutCircle,
+        note: {
+            title: "Six Cylinders",
+            label: "Diesel engine performs better in the city. Gasoline engines perform better on the highway.",
+            wrap: 190
+        },
+        subject: {
+            radius: 130
+        },
+        x: 400,
+        y: 640,
+        dy: 130,
+        dx: 130
+    }].map(function(d){ d.color = "#5f5fa7"; return d});
+
+    const makeAnnotations = d3.annotation()
+        .notePadding(10)
+        .type(type)
+        .annotations(annotations);
+
+    graph.append("g")
+        .attr("class", "annotation-group")
+        .attr('id', "six-cylinders-annotation")
+        .call(makeAnnotations)
+        .style("opacity", 0);
+    
+    d3.select('#six-cylinders-annotation')
+        .transition()
+        .duration(2000)
+        .ease(d3.easeLinear)
+        .style("opacity", 1);
 }
 
 async function loadConclusion()
 {
-    title.textContent = 'Conclusion'; 
-    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
+    title.textContent = 'Conclusion'
+    await typewriterEffect(conclusionHeader, "Main Findings")
 
-    await sleep(2);
-    
-    var text = "Fuel type ...";
-    
-    await typewriterEffect(narrative, text);
+    var ul = document.getElementById('list')
+
+    productList = ['Fuel type significantly affects MPG','Engine size inversely relates to fuel efficiency',
+        'Fuel type and engine size provide deeper insights into fuel efficiency trends'];
+
+    productList.forEach(renderProductList);
+
+    function renderProductList(element, index, arr) {
+        var li = document.createElement('li');
+        li.style.opacity = 0;
+
+        ul.appendChild(li);
+
+        li.innerHTML=li.innerHTML + element;
+    }
+
+    d3.selectAll('li')
+        .transition()
+        .duration(2000)
+        .ease(d3.easeLinear)
+        .style("opacity", 1);
+
+    await sleep(2)
+
+    var text = "Consider these factors when choosing a vehicle to balance performance and fuel economy."
+    await typewriterEffect(conclusionText, text);
+
+    var button = document.createElement("button");
+
+    button.id = 'userExplore';
+    button.className = 'button';
+    button.textContent = "Explore the Data Yourself \u2192"
+    button.style.opacity = 0;
+
+    button.setAttribute('onclick', 'clickedUserExplore()')
+    document.getElementById('sidebar-conclusion').appendChild(button);
+
+    d3.select('#userExplore')
+        .transition()
+        .duration(1000)
+        .ease(d3.easeLinear)
+        .style("opacity", 1);
+}
+
+async function clickedUserExplore()
+{
+    conclusionText.textContent = 'Consider these factors when choosing a vehicle to balance performance and fuel economy.\r\n\r\n';
+
+    var text = "Hover over the data points to see more details."
+    await typewriterEffect(conclusionText, text)
 
     backButton.style.visibility = 'visible';
     backButton.textContent = '\u2190 Back';
@@ -648,14 +776,4 @@ async function loadConclusion()
 async function sleep(seconds)
 {
     await new Promise(r => setTimeout(r, seconds * 1000));
-}
-
-function selectAllButEngineSize(data, size)
-{
-    return !(data.EngineCylinders == size)
-}
-
-function selectAllButEngineSize(data, size)
-{
-    return !(data.EngineCylinders == size)
 }
