@@ -88,15 +88,19 @@ var rectangle = graph.append("rect")
     .style("stroke-width", "2px")
     .attr("rx", 3)
 
-var currentSlide = 4
+// presentation location
+var currentSlide = 0
 
-// common elements
+// common html elements
 var title = document.getElementById('sidebar-title')
 var narrative = document.getElementById('sidebar-narrative')
 var conclusionHeader = document.getElementById('sidebar-conclusion-header')
 var conclusionText = document.getElementById('sidebar-conclusion')
 var backButton = document.getElementById('back-button')
+var replayButton = document.getElementById('replay-button')
 var nextButton = document.getElementById('next-button')
+
+var sceneQuestion = ''
 
 async function loadSlide()
 {
@@ -142,7 +146,10 @@ async function resetPage()
     conclusionHeader.textContent = ''
     conclusionText.textContent = ''
 
+    sceneQuestion = ''
+
     backButton.style.visibility = 'hidden'
+    replayButton.style.visibility = 'hidden'
     nextButton.style.visibility = 'hidden'
 
     document.getElementById("list").innerHTML = '';
@@ -203,6 +210,9 @@ function showSlideButtons()
 {
     backButton.style.visibility = 'visible';
     backButton.textContent = '\u2190 Back';
+
+    replayButton.style.visibility = 'visible';
+    replayButton.textContent = 'Replay Slide';
     
     nextButton.style.visibility = 'visible';
     nextButton.textContent = 'Next \u2192';
@@ -246,12 +256,12 @@ async function loadSceneOne()
 {    
     title.textContent = 'The Impact of Fuel Type on Mileage'; 
     
-    var text = 'How does fuel type impact city and highway mileage?';
+    var text = sceneQuestion = 'How does fuel type impact city and highway mileage?';
     await typewriterEffect(narrative, text);
 
     await sleep(1);
 
-    text = "First, let's focus on the electric and diesel vehicles.";
+    text = "First, let's focus on electric and diesel vehicles.";
     await typewriterEffect(narrative, text);
 
     var button = document.createElement("button");
@@ -273,7 +283,7 @@ async function loadSceneOne()
 
 async function clickedSceneOneButton()
 {    
-    narrative.textContent = 'How does fuel type impact average highway and city MPG?\r\n\r\n';
+    narrative.textContent = sceneQuestion + '\r\n\r\n';
 
     d3.selectAll('#d-circle')
     .filter((d) => d.Fuel == 'Gasoline')
@@ -287,14 +297,14 @@ async function clickedSceneOneButton()
     electricCarsAnnotations();
     
     var text = "Notice how the electric cars are clustered around the top right side of the graph "
-    + "showing they have high city and highway mileage."
+    + "because they have high city and highway mileage."
     await typewriterEffect(narrative, text)
     
     await sleep(2)
     
     dieselCarsAnnotations();
     
-    text = "Diesel engines are clustered above most gasoline engines, illustrating that they perform better "
+    text = "Diesel engines are clustered above the majority of gasoline engines, showing that they perform better "
          + "than most gasoline engines in city and highway mileage."
     await typewriterEffect(narrative, text)
     
@@ -388,12 +398,12 @@ async function loadSceneTwo()
 {
     title.textContent = 'The Impact of Engine Size on Mileage';
 
-    var text = 'How does engine size impact city and highway mileage?';
+    var text = sceneQuestion = 'How does engine size impact city and highway mileage?';
     await typewriterEffect(narrative, text)
 
     await sleep(1);
 
-    text = "Let's focus on vehicles with small and large engines.";
+    text = "Let's focus on vehicles that have either a small or large engine.";
     await typewriterEffect(narrative, text);
 
     var button = document.createElement("button");
@@ -415,7 +425,7 @@ async function loadSceneTwo()
 
 async function clickedSceneTwoButton()
 {
-    narrative.textContent = 'How does engine size impact city and highway mileage?\r\n\r\n'
+    narrative.textContent = sceneQuestion + '\r\n\r\n'
 
     d3.selectAll('#d-circle')
     .filter((d) => d.EngineCylinders > 4 && d.EngineCylinders < 12)
@@ -438,8 +448,8 @@ async function clickedSceneTwoButton()
 
     largeEngineAnnotations()
 
-    text = "The more cylinders an engine has, the less fuel efficient it is. Hence, why "
-         + "vehicles with smaller engines have a higher city and highway MPG."
+    text = "The more cylinders an engine has, the less fuel efficient it is. Hence, vehicles with smaller engines "
+         + "have better mileage than larger engines."
     await typewriterEffect(narrative, text)
 
     await typewriterEffect(conclusionHeader, "Conclusion")
@@ -458,7 +468,7 @@ function electricEngineAnnotations()
         type: d3.annotationCalloutCircle,
         note: {
             title: "Zero Cylinders (Electric Engine)",
-            label: "Perform best in the city and highway",
+            label: "Performs best in the city and highway",
             wrap: 190
         },
         subject: {
@@ -566,7 +576,7 @@ async function loadSceneThree()
 {
     title.textContent = 'The Impact of Fuel Type and Engine Size on Mileage'
 
-    var text = 'How does the combination of fuel type and engine size improve overall fuel efficiency?'
+    var text = sceneQuestion = 'How does the combination of fuel type and engine size improve overall fuel efficiency?'
     await typewriterEffect(narrative, text)
 
     await sleep(1);
@@ -593,7 +603,7 @@ async function loadSceneThree()
 
 async function clickedSceneThreeButton()
 {
-    narrative.textContent = 'How does the combination of fuel type and engine size improve overall fuel efficiency?\r\n\r\n';
+    narrative.textContent = sceneQuestion + '\r\n\r\n';
 
     d3.selectAll('#d-circle')
     .filter((d) => d.Fuel != 'Electricity')
@@ -607,18 +617,18 @@ async function clickedSceneThreeButton()
     var text = "Electric cars consistently outperform diesel and gasoline vehicles due to regenerative braking."
     await typewriterEffect(narrative, text)
 
-    await sleep(5);
+    await sleep(3);
 
     resetGraph()
     fadeOutAnnotation('#electric-engine-annotation')
     fadeOutAllButEngine(4)
     engineSizeFourAnnotations()
 
-    text = "Four-cylinder diesel vehicles perform better on the highway than most four-cylinder gasoline vehicles due to diesel fuel being more "
+    text = "Four-cylinder diesel vehicles perform better in the city and highway than most four-cylinder gasoline vehicles due to diesel fuel being more "
          + "combustible than gasoline."
     await typewriterEffect(narrative, text)
     
-    await sleep(5);
+    await sleep(3);
 
     resetGraph()
     fadeOutAnnotation('#four-cylinders-annotation')
@@ -690,7 +700,7 @@ function engineSizeFourAnnotations()
         type: d3.annotationCalloutCircle,
         note: {
             title: "Four Cylinders",
-            label: "Diesel engine performs better in the city and on the highway.",
+            label: "Diesel engine performs better in the city and highway.",
             wrap: 190
         },
         subject: {
@@ -727,7 +737,7 @@ function engineSizeSixAnnotations()
         type: d3.annotationCalloutCircle,
         note: {
             title: "Six Cylinders",
-            label: "Diesel engine performs better in the city. Gasoline engines perform better on the highway.",
+            label: "Diesel engine performs better in the city. Gasoline engine performs better on the highway.",
             wrap: 190
         },
         subject: {
@@ -813,7 +823,8 @@ async function clickedUserExplore()
     var text = "Hover over the data points to see more details or select a fuel type from the legend on the bottom right."
     await typewriterEffect(conclusionText, text)
 
-    var legendFilter = d3.selectAll('#legendOption').on('click', (d) => test(d))
+    d3.selectAll('#legendOption')
+        .on('click', (d) => filters(d))
 
     var tooltip = d3.select('#graph-div')
     .append("div")
@@ -853,12 +864,15 @@ async function clickedUserExplore()
 
     backButton.style.visibility = 'visible';
     backButton.textContent = '\u2190 Back';
+
+    replayButton.style.visibility = 'visible';
+    replayButton.textContent = 'Replay Slide';
     
     nextButton.style.visibility = 'visible';
     nextButton.textContent = 'Restart Presentation';
 }
 
-function test(fuel)
+function filters(fuel)
 {
     resetGraph()
     switch (fuel)
