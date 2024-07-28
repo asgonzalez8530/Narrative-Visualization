@@ -104,9 +104,15 @@ replayButton.textContent = 'Replay Scene';
 
 var sceneQuestion = ''
 
+async function init()
+{
+    await drawGraph()
+    loadSlide()
+}
+
 async function loadSlide()
 {
-    await resetPage()
+    resetPage()
     switch (currentSlide)
     {
         default:
@@ -141,7 +147,7 @@ async function previousSlide()
     await loadSlide();
 }
 
-async function resetPage()
+function resetPage()
 {
     title.textContent = ''
     narrative.textContent = ''
@@ -165,7 +171,11 @@ async function resetPage()
         .style("cursor", "default")
         .on('click', null)
 
-    await drawGraph()
+    graph.selectAll('#d-circle')
+        .on("mouseover", null)
+        .on("mousemove", null)
+        .on("mouseleave", null)
+
     resetGraph()
 }
 
@@ -800,7 +810,7 @@ async function loadConclusion()
         .ease(d3.easeLinear)
         .style("opacity", 1);
 
-    await sleep(2)
+    await sleep(1)
 
     var text = "Consider these factors when choosing a vehicle to balance performance and fuel economy."
     await typewriterEffect(conclusionText, text);
@@ -825,9 +835,6 @@ async function loadConclusion()
 async function clickedUserExplore()
 {
     conclusionText.textContent = 'Consider these factors when choosing a vehicle to balance performance and fuel economy.\r\n\r\n';
-
-    var text = "Hover over the data points to see more details or filter data by select a fuel type from the legend on the bottom right."
-    await typewriterEffect(conclusionText, text)
 
     d3.selectAll('#legend-options')
         .on('click', (d) => filters(d))
@@ -868,9 +875,12 @@ async function clickedUserExplore()
     }
     
     graph.selectAll('#d-circle')
-        .on("mouseover", mouseover )
-        .on("mousemove", mousemove )
-        .on("mouseleave", mouseleave )
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave)
+
+    var text = "Hover over the data points to see more details or filter data by select a fuel type from the legend on the bottom right."
+    await typewriterEffect(conclusionText, text)
 
     nextButton.textContent = 'Restart Presentation';
     
