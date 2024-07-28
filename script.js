@@ -44,8 +44,20 @@ graph.append("text")
 
 // legend
 var keys = ["Electric", "Gasoline", "Diesel"]
-var xLegend = 1300
+var xLegend = 1250
 var yLegend = 750
+
+// legend outline
+var rectangle = graph.append("rect")
+    .attr('id', 'legend-box')
+    .attr("x", xLegend - 20)
+    .attr("y", yLegend - 20)
+    .attr("width", 135)
+    .attr("height", 87)
+    .style("fill", "none")
+    .style("stroke", "#5f5fa7")
+    .style("stroke-width", "2px")
+    .attr("rx", 3)
 
 // colors
 graph.selectAll()
@@ -62,31 +74,15 @@ graph.selectAll()
     .data(keys)
     .enter()
     .append("text")
-        .attr('id', 'legendOption')
+        .attr('id', 'legend-options')
         .attr("x", xLegend + 20)
         .attr("y", (d, i) => yLegend + i * 25) 
         .style("fill", (d) => fuelTypeColor(d))
         .text((d) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")
-
-graph.append("text")
-    .attr("x", xLegend)
-    .attr("y", yLegend - 30)
-    .text("Legend")
-    .attr("text-anchor", "left")
-    .style("alignment-baseline", "middle")
-    .style("fill", '#5f5fa7')
-
-var rectangle = graph.append("rect")
-    .attr("x", xLegend - 15)
-    .attr("y", yLegend - 45)
-    .attr("width", 105)
-    .attr("height", 110)
-    .style("fill", "none")
-    .style("stroke", "#5f5fa7")
-    .style("stroke-width", "2px")
-    .attr("rx", 3)
+        .style('font-size', '20')
+        .style('font-weight', 'bold')
 
 // presentation location
 var currentSlide = 0
@@ -99,6 +95,12 @@ var conclusionText = document.getElementById('sidebar-conclusion')
 var backButton = document.getElementById('back-button')
 var replayButton = document.getElementById('replay-button')
 var nextButton = document.getElementById('next-button')
+
+var leftArrow = '\u2190'
+var rightArrow = '\u2192'
+
+backButton.textContent = leftArrow 
+replayButton.textContent = 'Replay Scene';
 
 var sceneQuestion = ''
 
@@ -156,6 +158,13 @@ async function resetPage()
 
     d3.selectAll(".annotations").remove()
 
+    d3.selectAll('#legend-box')
+        .style("opacity", 0)
+    
+    d3.selectAll('#legend-options')
+        .style("cursor", "default")
+        .on('click', null)
+
     await drawGraph()
     resetGraph()
 }
@@ -208,14 +217,11 @@ function resetGraph()
 
 function showSlideButtons()
 {
-    backButton.style.visibility = 'visible';
-    backButton.textContent = '\u2190 Back';
+    nextButton.textContent = rightArrow 
 
+    backButton.style.visibility = 'visible';
     replayButton.style.visibility = 'visible';
-    replayButton.textContent = 'Replay Slide';
-    
     nextButton.style.visibility = 'visible';
-    nextButton.textContent = 'Next \u2192';
 }
 
 async function typewriterEffect(element, text)
@@ -232,14 +238,14 @@ async function typewriterEffect(element, text)
 function loadTitlePage()
 {
     title.textContent = 'Introduction'
-    narrative.textContent = "Let's explore how different fuel types and engine sizes affect city and highway "
-        + "miles per gallon (MPG).\r\n\r\n"
+    narrative.textContent = "Let's explore how different fuel types and engine sizes affect city and highway miles per gallon (MPG).\r\n\r\n"
+        + "Note that the vehicle's fuel type is characterized by its color and its engine size is delineated by the data point's diameter.\r\n\r\n"
 
     var button = document.createElement("button")
 
     button.id = 'titlePageExplore'
     button.className = 'button'
-    button.textContent = "Let's Explore \u2192"
+    button.textContent = "Let's Explore " + rightArrow
     button.style.opacity = 0
 
     button.setAttribute('onclick', 'nextSlide()')
@@ -268,7 +274,7 @@ async function loadSceneOne()
 
     button.id = 'sceneOneExploration';
     button.className = 'button';
-    button.textContent = "Focus on Diesel and Electric Vehicles"
+    button.textContent = "Focus on Diesel and Electric Vehicles " + rightArrow
     button.style.opacity = 0;
 
     button.setAttribute('onclick', 'clickedSceneOneButton()')
@@ -410,7 +416,7 @@ async function loadSceneTwo()
 
     button.id = 'sceneTwoExploration';
     button.className = 'button';
-    button.textContent = "Filter Engine Sizes"
+    button.textContent = "Filter Engine Sizes " + rightArrow
     button.style.opacity = 0;
 
     button.setAttribute('onclick', 'clickedSceneTwoButton()')
@@ -588,7 +594,7 @@ async function loadSceneThree()
 
     button.id = 'sceneThreeButton';
     button.className = 'button';
-    button.textContent = "Explore \u2192"
+    button.textContent = "Explore " + rightArrow
     button.style.opacity = 0;
 
     button.setAttribute('onclick', 'clickedSceneThreeButton()')
@@ -803,7 +809,7 @@ async function loadConclusion()
 
     button.id = 'userExplore';
     button.className = 'button';
-    button.textContent = "Explore the Data Yourself \u2192"
+    button.textContent = "Explore the Data Yourself " + rightArrow
     button.style.opacity = 0;
 
     button.setAttribute('onclick', 'clickedUserExplore()')
@@ -820,22 +826,26 @@ async function clickedUserExplore()
 {
     conclusionText.textContent = 'Consider these factors when choosing a vehicle to balance performance and fuel economy.\r\n\r\n';
 
-    var text = "Hover over the data points to see more details or select a fuel type from the legend on the bottom right."
+    var text = "Hover over the data points to see more details or filter data by select a fuel type from the legend on the bottom right."
     await typewriterEffect(conclusionText, text)
 
-    d3.selectAll('#legendOption')
+    d3.selectAll('#legend-options')
         .on('click', (d) => filters(d))
+        .style("cursor", 'pointer')
+    
+    d3.selectAll('#legend-box')
+        .style("opacity", 1)
 
     var tooltip = d3.select('#graph-div')
-    .append("div")
-    .style("opacity", 0)
-    .attr("class", "tooltip")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "1px")
-    .style("padding", "10px")
-    .style('position', "absolute")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "#d3d3ff")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "1px")
+        .style("padding", "10px")
+        .style('position', "absolute")
     
     var mouseover = function(d) {
         tooltip
@@ -858,30 +868,32 @@ async function clickedUserExplore()
     }
     
     graph.selectAll('#d-circle')
-    .on("mouseover", mouseover )
-    .on("mousemove", mousemove )
-    .on("mouseleave", mouseleave )
+        .on("mouseover", mouseover )
+        .on("mousemove", mousemove )
+        .on("mouseleave", mouseleave )
 
-    backButton.style.visibility = 'visible';
-    backButton.textContent = '\u2190 Back';
-
-    replayButton.style.visibility = 'visible';
-    replayButton.textContent = 'Replay Slide';
+    nextButton.textContent = 'Restart Presentation';
     
     nextButton.style.visibility = 'visible';
-    nextButton.textContent = 'Restart Presentation';
+    backButton.style.visibility = 'visible';
+    replayButton.style.visibility = 'visible';
 }
 
 function filters(fuel)
 {
-    resetGraph()
+    d3.selectAll('#d-circle')
+        .transition()
+        .duration(50)
+        .ease(d3.easeLinear)
+        .style('opacity', 1);
+
     switch (fuel)
     {
         case 'Electric':
             d3.selectAll('#d-circle')
             .filter((d) => d.Fuel != 'Electricity')
             .transition()
-            .duration(2000)
+            .duration(50)
             .ease(d3.easeLinear)
             .style("opacity", .05);
             return
@@ -889,7 +901,7 @@ function filters(fuel)
             d3.selectAll('#d-circle')
             .filter((d) => d.Fuel != 'Gasoline')
             .transition()
-            .duration(2000)
+            .duration(50)
             .ease(d3.easeLinear)
             .style("opacity", .05);
             return
@@ -897,7 +909,7 @@ function filters(fuel)
             d3.selectAll('#d-circle')
             .filter((d) => d.Fuel != 'Diesel')
             .transition()
-            .duration(2000)
+            .duration(50)
             .ease(d3.easeLinear)
             .style("opacity", .05);
             return
